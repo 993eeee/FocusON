@@ -1,0 +1,953 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Focus:ON</title>
+<meta name="description" content="수면 압력과 카페인으로 집중 시간에 맞는 카페인 섭취를 계산하는 Bio:ON 팀의 웹사이트.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>:root{
+  --bg:#EEF1EE; --surface:#FFFFFF; --ink:#1E2A33; --muted:#5B6873; --line:#CDD5D2;
+  --sleep:#2F4C80; --clock:#B87A12; --coffee:#6E4528; --band:rgba(47,76,128,.09);
+  --warn-bg:#FFF4DE; --warn-ink:#6B4A06; --stop-bg:#FBE7E4; --stop-ink:#7A2418;
+  color-scheme:light;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#151B20; --surface:#1E262D; --ink:#E6EBEE; --muted:#9CA8B1; --line:#33404A;
+    --sleep:#8FB0EA; --clock:#E3B04F; --coffee:#D49A6A; --band:rgba(143,176,234,.12);
+    --warn-bg:#3A3018; --warn-ink:#F3D795; --stop-bg:#3D2320; --stop-ink:#F2B5AB;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#151B20; --surface:#1E262D; --ink:#E6EBEE; --muted:#9CA8B1; --line:#33404A;
+  --sleep:#8FB0EA; --clock:#E3B04F; --coffee:#D49A6A; --band:rgba(143,176,234,.12);
+  --warn-bg:#3A3018; --warn-ink:#F3D795; --stop-bg:#3D2320; --stop-ink:#F2B5AB;
+  color-scheme:dark;
+}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);
+  font-family:"IBM Plex Sans KR","Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",sans-serif;
+  font-size:16px;line-height:1.65;word-break:keep-all}
+ol.steps{list-style:none;display:flex;gap:6px;padding:0;margin:24px 0 20px}
+ol.steps li{flex:1;height:4px;border-radius:2px;background:var(--line)}
+ol.steps li.on{background:var(--sleep)}
+.stepname{color:var(--muted);font-size:.875rem;margin:-10px 0 18px}
+section.screen{display:none}
+section.screen.active{display:block}
+h2{font-size:1.25rem;margin:0 0 4px;font-weight:600}
+.lead{color:var(--muted);margin:0 0 20px}
+fieldset{border:0;margin:0 0 22px;padding:0}
+legend{font-weight:600;margin-bottom:8px;padding:0}
+.hint{color:var(--muted);font-size:.875rem;margin:4px 0 0}
+.row{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
+label.f{display:block;font-size:.9rem;color:var(--muted)}
+input[type=number],input[type=time],input[type=text],select{
+  display:block;width:100%;margin-top:4px;font:inherit;color:var(--ink);
+  background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:9px 10px}
+.choices{display:flex;flex-wrap:wrap;gap:8px}
+.choices label{display:inline-flex;align-items:center;gap:6px;background:var(--surface);
+  border:1px solid var(--line);border-radius:20px;padding:6px 14px;cursor:pointer}
+.choices input{accent-color:var(--sleep)}
+.choices label:has(input:checked){border-color:var(--sleep);box-shadow:inset 0 0 0 1px var(--sleep)}
+.choices label.disabled{opacity:.5;cursor:not-allowed}
+input[type=range]{width:100%;accent-color:var(--sleep)}
+.rangeval{font-weight:600}
+.btns{display:flex;gap:10px;justify-content:space-between;margin-top:28px}
+button{font:inherit;border-radius:6px;padding:11px 20px;cursor:pointer;border:1px solid var(--line);
+  background:var(--surface);color:var(--ink)}
+button.primary{background:var(--sleep);border-color:var(--sleep);color:var(--bg);font-weight:600}
+:focus-visible{outline:2px solid var(--clock);outline-offset:2px}
+.err{color:var(--stop-ink);background:var(--stop-bg);padding:10px 12px;border-radius:6px;margin-top:14px;display:none}
+.note{background:var(--warn-bg);color:var(--warn-ink);padding:12px 14px;border-radius:6px;margin:14px 0;font-size:.92rem}
+.stop{background:var(--stop-bg);color:var(--stop-ink);padding:16px;border-radius:6px}
+.figs{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px;margin:8px 0 16px}
+.fig{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:14px 16px}
+.fig b{display:block;font-size:1.6rem;line-height:1.2}
+.fig span{color:var(--muted);font-size:.875rem}
+.verdict{font-size:1.35rem;line-height:1.55;font-weight:600;margin:6px 0 14px}
+.verdict em{font-style:normal;border-bottom:2px solid var(--coffee)}
+.chartwrap{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:12px;margin:14px 0}
+.chartwrap svg{display:block;width:100%;height:auto}
+.legend{display:flex;flex-wrap:wrap;gap:14px;font-size:.85rem;color:var(--muted);margin:6px 4px 0}
+.legend i{display:inline-block;width:14px;height:3px;vertical-align:middle;margin-right:5px;border-radius:2px}
+table{border-collapse:collapse;width:100%;font-size:.9rem}
+.tablewrap{overflow-x:auto}
+td,th{text-align:left;padding:7px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-weight:600}
+details{margin-top:18px}
+summary{cursor:pointer;font-weight:600}
+.disclaimer{color:var(--muted);font-size:.875rem;margin-top:18px}
+@media (prefers-reduced-motion:no-preference){section.screen.active{animation:in .25s ease-out}
+  @keyframes in{from{opacity:0}to{opacity:1}}}
+
+/* ===== 사이트 공통 ===== */
+.wrap{max-width:1040px;margin:0 auto;padding-left:max(20px,env(safe-area-inset-left,0px));padding-right:max(20px,env(safe-area-inset-right,0px))}
+.site-header{background:var(--surface);border-bottom:1px solid var(--line)}
+.site-header .wrap{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:6px 24px;padding-top:12px;padding-bottom:12px}
+.brand{font-weight:700;font-size:1.25rem;letter-spacing:-.01em;color:var(--ink);text-decoration:none}
+.brand b{color:var(--clock);font-weight:700}
+.brand small{display:block;font-size:.72rem;font-weight:500;color:var(--muted);letter-spacing:.02em;margin-top:-2px}
+nav.main-nav{display:flex;flex-wrap:wrap;gap:2px 6px}
+nav.main-nav a{color:var(--muted);text-decoration:none;padding:6px 10px;border-radius:6px;font-size:.95rem}
+nav.main-nav a:hover{color:var(--ink)}
+nav.main-nav a[aria-current="page"]{color:var(--sleep);font-weight:600;box-shadow:inset 0 -2px 0 var(--sleep);border-radius:0}
+a{color:var(--sleep)}
+.btn{display:inline-block;font:inherit;font-weight:600;border-radius:6px;padding:12px 22px;text-decoration:none;border:1px solid var(--sleep);background:var(--sleep);color:var(--bg)}
+.btn.ghost{background:transparent;color:var(--sleep)}
+.btn-row{display:flex;flex-wrap:wrap;gap:10px;margin-top:22px}
+
+/* 소개 페이지 */
+.hero{padding-block:48px 36px;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);gap:36px;align-items:center}
+.hero h1{font-size:clamp(1.7rem,4.2vw,2.5rem);line-height:1.3;margin:0 0 14px;font-weight:700;letter-spacing:-.02em;text-wrap:balance}
+.hero p.sub{margin:0;color:var(--muted);font-size:1.05rem;max-width:34em}
+.eyebrow{font-size:.8rem;letter-spacing:.08em;color:var(--clock);font-weight:600;margin:0 0 10px}
+.plot{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:12px 12px 10px;min-width:0}
+.plot svg{display:block;width:100%;height:auto}
+.plot figcaption{font-size:.82rem;color:var(--muted);margin:8px 4px 0}
+.plot .legend{margin-top:8px}
+section.block{padding-block:40px;border-top:1px solid var(--line)}
+section.block h2{font-size:1.4rem;margin:0 0 6px;letter-spacing:-.01em}
+section.block .lead{margin:0 0 22px;max-width:40em}
+.three{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:26px}
+.three h3{font-size:1.05rem;margin:10px 0 4px}
+.three p{margin:0;color:var(--muted);font-size:.95rem}
+.key{display:block;width:34px;height:4px;border-radius:2px}
+.steps-list{list-style:none;margin:0;padding:0;display:grid;gap:0;max-width:760px}
+.steps-list li{display:grid;grid-template-columns:44px minmax(0,1fr);gap:4px 14px;padding:16px 0;border-bottom:1px solid var(--line)}
+.steps-list li:last-child{border-bottom:0}
+.steps-list .n{font-size:1.5rem;font-weight:700;color:var(--sleep);line-height:1.2}
+.steps-list h3{margin:0 0 2px;font-size:1.05rem}
+.steps-list p{margin:0;color:var(--muted)}
+.facts{margin:0;padding:0;list-style:none;max-width:820px}
+.facts li{display:grid;grid-template-columns:150px minmax(0,1fr);gap:4px 20px;padding:14px 0;border-bottom:1px solid var(--line)}
+.facts li:last-child{border-bottom:0}
+.facts b{font-size:1.35rem;line-height:1.3;color:var(--coffee)}
+.facts span{color:var(--muted)}
+.facts small{display:block;margin-top:2px;font-size:.82rem}
+.limits{margin:0;padding-left:1.2em;max-width:760px}
+.limits li{margin:8px 0}
+
+/* 본문 페이지 */
+.page{padding-block:36px 56px}
+.page.narrow{max-width:760px;margin:0 auto}
+.page h1{font-size:1.75rem;line-height:1.3;margin:0 0 6px;letter-spacing:-.01em}
+.page h2{font-size:1.25rem;margin:36px 0 8px;letter-spacing:-.01em}
+.page h3{font-size:1.02rem;margin:22px 0 4px}
+.page p{margin:0 0 12px}
+.page .meta{color:var(--muted);margin-bottom:8px}
+pre.eq{background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:12px 14px;overflow-x:auto;font:.88rem/1.7 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;margin:8px 0 14px;white-space:pre}
+.tag{display:inline-block;font-size:.75rem;font-weight:600;padding:1px 8px;border-radius:10px;background:var(--band);color:var(--sleep);white-space:nowrap}
+.tag.own{background:var(--warn-bg);color:var(--warn-ink)}
+.toc{display:flex;flex-wrap:wrap;gap:6px 16px;margin:16px 0 0;padding:0;list-style:none;font-size:.92rem}
+.refs{padding-left:1.2em}
+.refs li{margin:6px 0}
+
+/* 계산기 페이지 */
+.calc{max-width:720px;margin:0 auto;padding:28px max(20px,env(safe-area-inset-left,0px)) 64px}
+.calc .pagehead h1{font-size:1.6rem;line-height:1.3;margin:0 0 6px;font-weight:700;letter-spacing:-.01em}
+.calc .pagehead p{margin:0;color:var(--muted)}
+
+/* 푸터 */
+.site-footer{margin-top:24px;border-top:1px solid var(--line);background:var(--surface);color:var(--muted);font-size:.875rem}
+.site-footer .wrap{padding-top:22px;padding-bottom:calc(26px + env(safe-area-inset-bottom,0px));display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px 40px}
+.site-footer p{margin:0 0 6px}
+.site-footer a{color:var(--muted)}
+
+@media (max-width:820px){
+  .hero{grid-template-columns:minmax(0,1fr);padding-block:32px 24px;gap:26px}
+  .facts li{grid-template-columns:minmax(0,1fr)}
+}
+@media (max-width:480px){.btn{width:100%;text-align:center}}
+
+/* ===== 한 페이지 사이트 ===== */
+.route{display:none}
+.route.on{display:block}
+a[data-goto]{cursor:pointer}
+/* ===== 편집 모드 ===== */
+.edit-bar{position:fixed;z-index:20;right:max(16px,env(safe-area-inset-right,0px));bottom:calc(16px + env(safe-area-inset-bottom,0px));display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:flex-end;max-width:calc(100vw - 32px);background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:10px;padding:8px 10px;box-shadow:0 4px 18px rgba(0,0,0,.18)}
+.edit-bar span{font-size:.85rem;color:var(--muted);padding:0 4px}
+.edit-bar button{padding:8px 14px;font-size:.9rem}
+.edit-bar[hidden]{display:none}
+body.editing [data-ek]{outline:1px dashed var(--sleep);outline-offset:3px;cursor:text;border-radius:2px}
+body.editing [data-ek]:focus{outline:2px solid var(--clock)}
+body.editing [data-ek].changed{background:var(--band)}
+body.editing #r-calculator{opacity:.55}
+</style>
+<div id="app">
+<header class="site-header"><div class="wrap">
+  <a class="brand" href="#home">Focus<b>:</b>ON<small>Bio:ON 팀 프로젝트</small></a>
+  <nav class="main-nav" aria-label="주 메뉴"><a href="#home">소개</a><a href="#calculator">계산기</a><a href="#method">계산 원리</a><a href="#about">프로젝트</a></nav>
+</div></header>
+<main id="r-home" class="route">
+<div class="wrap hero">
+  <div>
+    <p class="eyebrow">Bio:ON · 수면 × 카페인</p>
+    <h1>집중하고 싶은 시간에 맞춰, 카페인 한 잔을 계산합니다</h1>
+    <p class="sub">지난밤 수면, 하루 리듬, 몸에 남은 카페인을 함께 보고 마셔야 할 때와 마시지 않아도 될 때를 알려 드립니다.</p>
+    <div class="btn-row"><a class="btn" href="#calculator">내 집중 시간으로 계산하기</a><a class="btn ghost" href="#method">계산 원리 보기</a></div>
+  </div>
+  <figure class="plot" style="margin:0">
+    <svg viewBox="0 0 640 300" role="img" aria-label="예시 입력으로 계산한 수면 압력, 하루 리듬, 카페인 잔존량 곡선"><rect x="298.1" y="16" width="95.3" height="246" fill="var(--band)"></rect><line x1="75.8" x2="75.8" y1="262" y2="266" stroke="var(--muted)"></line><text x="75.8" y="280" font-size="11" text-anchor="middle" fill="var(--muted)">08시</text><line x1="139.3" x2="139.3" y1="262" y2="266" stroke="var(--muted)"></line><text x="139.3" y="280" font-size="11" text-anchor="middle" fill="var(--muted)">10시</text><line x1="202.8" x2="202.8" y1="262" y2="266" stroke="var(--muted)"></line><text x="202.8" y="280" font-size="11" text-anchor="middle" fill="var(--muted)">12시</text><line x1="266.4" x2="266.4" y1="262" y2="266" stroke="var(--muted)"></line><text x="266.4" y="280" font-size="11" text-anchor="middle" fill="var(--muted)">14시</text><line x1="329.9" x2="329.9" y1="262" y2="266" stroke="var(--muted)"></line><text x="329.9" y="280" font-size="11" text-anchor="middle" fill="var(--muted)">16시</text><line x1="393.4" x2="393.4" y1="262" y2="266" stroke="var(--muted)"></line><text x="393.4" y="280" font-size="11" text-anchor="middle" fill="var(--muted)">18시</text><line x1="456.9" x2="456.9" y1="262" y2="266" stroke="var(--muted)"></line><text x="456.9" y="280" font-size="11" text-anchor="middle" fill="var(--muted)">20시</text><line x1="520.5" x2="520.5" y1="262" y2="266" stroke="var(--muted)"></line><text x="520.5" y="280" font-size="11" text-anchor="middle" fill="var(--muted)">22시</text><line x1="584.0" x2="584.0" y1="262" y2="266" stroke="var(--muted)"></line><text x="584.0" y="280" font-size="11" text-anchor="middle" fill="var(--muted)">00시</text><line x1="44" x2="584" y1="262" y2="262" stroke="var(--line)"></line><text x="38" y="266.0" font-size="11" text-anchor="end" fill="var(--muted)">0</text><text x="38" y="143.0" font-size="11" text-anchor="end" fill="var(--muted)">0.5</text><text x="38" y="20.0" font-size="11" text-anchor="end" fill="var(--muted)">1</text><text x="590" y="266.0" font-size="11" fill="var(--coffee)">0mg</text><text x="590" y="143.0" font-size="11" fill="var(--coffee)">125mg</text><text x="590" y="20.0" font-size="11" fill="var(--coffee)">250mg</text><path d="M44.0,224.3L47.2,223.2L50.4,222.0L53.5,220.9L56.7,219.8L59.9,218.7L63.1,217.5L66.2,216.4L69.4,215.3L72.6,214.3L75.8,213.2L78.9,212.1L82.1,211.0L85.3,209.9L88.5,208.9L91.6,207.8L94.8,206.8L98.0,205.7L101.2,204.7L104.4,203.7L107.5,202.6L110.7,201.6L113.9,200.6L117.1,199.6L120.2,198.6L123.4,197.6L126.6,196.6L129.8,195.6L132.9,194.6L136.1,193.6L139.3,192.6L142.5,191.7L145.6,190.7L148.8,189.8L152.0,188.8L155.2,187.9L158.4,186.9L161.5,186.0L164.7,185.1L167.9,184.1L171.1,183.2L174.2,182.3L177.4,181.4L180.6,180.5L183.8,179.6L186.9,178.7L190.1,177.8L193.3,176.9L196.5,176.0L199.6,175.1L202.8,174.3L206.0,173.4L209.2,172.5L212.4,171.7L215.5,170.8L218.7,170.0L221.9,169.1L225.1,168.3L228.2,167.5L231.4,166.6L234.6,165.8L237.8,165.0L240.9,164.2L244.1,163.4L247.3,162.5L250.5,161.7L253.6,160.9L256.8,160.2L260.0,159.4L263.2,158.6L266.4,157.8L269.5,157.0L272.7,156.2L275.9,155.5L279.1,154.7L282.2,154.0L285.4,153.2L288.6,152.4L291.8,151.7L294.9,151.0L298.1,150.2L301.3,149.5L304.5,148.7L307.6,148.0L310.8,147.3L314.0,146.6L317.2,145.9L320.4,145.2L323.5,144.4L326.7,143.7L329.9,143.0L333.1,142.3L336.2,141.7L339.4,141.0L342.6,140.3L345.8,139.6L348.9,138.9L352.1,138.2L355.3,137.6L358.5,136.9L361.6,136.2L364.8,135.6L368.0,134.9L371.2,134.3L374.4,133.6L377.5,133.0L380.7,132.3L383.9,131.7L387.1,131.1L390.2,130.4L393.4,129.8L396.6,129.2L399.8,128.6L402.9,128.0L406.1,127.3L409.3,126.7L412.5,126.1L415.6,125.5L418.8,124.9L422.0,124.3L425.2,123.7L428.4,123.1L431.5,122.6L434.7,122.0L437.9,121.4L441.1,120.8L444.2,120.2L447.4,119.7L450.6,119.1L453.8,118.5L456.9,118.0L460.1,117.4L463.3,116.9L466.5,116.3L469.6,115.8L472.8,115.2L476.0,114.7L479.2,114.1L482.4,113.6L485.5,113.1L488.7,112.5L491.9,112.0L495.1,111.5L498.2,110.9L501.4,110.4L504.6,109.9L507.8,109.4L510.9,108.9L514.1,108.4L517.3,107.9L520.5,107.4L523.6,106.9L526.8,106.4L530.0,105.9L533.2,105.4L536.4,104.9L539.5,104.4L542.7,103.9L545.9,103.4L549.1,103.0L552.2,102.5L555.4,102.0L558.6,101.5L561.8,101.1L564.9,100.6L568.1,100.1L571.3,99.7L574.5,99.2L577.6,98.8L580.8,98.3L584.0,97.9" fill="none" stroke="var(--sleep)" stroke-width="2.5"></path><path d="M44.0,165.1L47.2,164.4L50.4,163.7L53.5,163.0L56.7,162.2L59.9,161.5L63.1,160.7L66.2,159.9L69.4,159.1L72.6,158.3L75.8,157.5L78.9,156.6L82.1,155.8L85.3,154.9L88.5,154.0L91.6,153.1L94.8,152.2L98.0,151.3L101.2,150.4L104.4,149.5L107.5,148.6L110.7,147.6L113.9,146.7L117.1,145.7L120.2,144.8L123.4,143.8L126.6,142.9L129.8,141.9L132.9,140.9L136.1,140.0L139.3,139.0L142.5,138.0L145.6,137.1L148.8,136.1L152.0,135.1L155.2,134.2L158.4,133.2L161.5,132.3L164.7,131.3L167.9,130.4L171.1,129.4L174.2,128.5L177.4,127.6L180.6,126.7L183.8,125.8L186.9,124.9L190.1,124.0L193.3,123.1L196.5,122.2L199.6,121.4L202.8,120.6L206.0,119.7L209.2,118.9L212.4,118.1L215.5,117.3L218.7,116.5L221.9,115.8L225.1,115.0L228.2,114.3L231.4,113.6L234.6,112.9L237.8,112.2L240.9,111.6L244.1,110.9L247.3,110.3L250.5,109.7L253.6,109.1L256.8,108.6L260.0,108.1L263.2,107.5L266.4,107.0L269.5,106.6L272.7,106.1L275.9,105.7L279.1,105.3L282.2,104.9L285.4,104.6L288.6,104.2L291.8,103.9L294.9,103.6L298.1,103.4L301.3,103.1L304.5,102.9L307.6,102.7L310.8,102.6L314.0,102.4L317.2,102.3L320.4,102.2L323.5,102.2L326.7,102.1L329.9,102.1L333.1,102.1L336.2,102.2L339.4,102.2L342.6,102.3L345.8,102.4L348.9,102.6L352.1,102.7L355.3,102.9L358.5,103.1L361.6,103.4L364.8,103.6L368.0,103.9L371.2,104.2L374.4,104.6L377.5,104.9L380.7,105.3L383.9,105.7L387.1,106.1L390.2,106.6L393.4,107.0L396.6,107.5L399.8,108.1L402.9,108.6L406.1,109.1L409.3,109.7L412.5,110.3L415.6,110.9L418.8,111.6L422.0,112.2L425.2,112.9L428.4,113.6L431.5,114.3L434.7,115.0L437.9,115.8L441.1,116.5L444.2,117.3L447.4,118.1L450.6,118.9L453.8,119.7L456.9,120.6L460.1,121.4L463.3,122.2L466.5,123.1L469.6,124.0L472.8,124.9L476.0,125.8L479.2,126.7L482.4,127.6L485.5,128.5L488.7,129.4L491.9,130.4L495.1,131.3L498.2,132.3L501.4,133.2L504.6,134.2L507.8,135.1L510.9,136.1L514.1,137.1L517.3,138.0L520.5,139.0L523.6,140.0L526.8,140.9L530.0,141.9L533.2,142.9L536.4,143.8L539.5,144.8L542.7,145.7L545.9,146.7L549.1,147.6L552.2,148.6L555.4,149.5L558.6,150.4L561.8,151.3L564.9,152.2L568.1,153.1L571.3,154.0L574.5,154.9L577.6,155.8L580.8,156.6L584.0,157.5" fill="none" stroke="var(--clock)" stroke-width="2" stroke-dasharray="6 4"></path><path d="M282.2,29.8L285.4,33.0L288.6,36.1L291.8,39.2L294.9,42.3L298.1,45.3L301.3,48.3L304.5,51.3L307.6,54.2L310.8,57.0L314.0,59.8L317.2,62.6L320.4,65.4L323.5,68.1L326.7,70.7L329.9,73.4L333.1,76.0L336.2,78.5L339.4,81.1L342.6,83.6L345.8,86.0L348.9,88.4L352.1,90.8L355.3,93.2L358.5,95.5L361.6,97.8L364.8,100.1L368.0,102.3L371.2,104.5L374.4,106.7L377.5,108.8L380.7,110.9L383.9,113.0L387.1,115.0L390.2,117.1L393.4,119.0L396.6,121.0L399.8,123.0L402.9,124.9L406.1,126.8L409.3,128.6L412.5,130.5L415.6,132.3L418.8,134.1L422.0,135.8L425.2,137.6L428.4,139.3L431.5,141.0L434.7,142.6L437.9,144.3L441.1,145.9L444.2,147.5L447.4,149.1L450.6,150.6L453.8,152.2L456.9,153.7L460.1,155.2L463.3,156.6L466.5,158.1L469.6,159.5L472.8,160.9L476.0,162.3L479.2,163.7L482.4,165.0L485.5,166.4L488.7,167.7L491.9,169.0L495.1,170.3L498.2,171.5L501.4,172.8L504.6,174.0L507.8,175.2L510.9,176.4L514.1,177.6L517.3,178.8L520.5,179.9L523.6,181.0L526.8,182.1L530.0,183.2L533.2,184.3L536.4,185.4L539.5,186.4L542.7,187.5L545.9,188.5L549.1,189.5L552.2,190.5L555.4,191.5L558.6,192.5L561.8,193.4L564.9,194.4L568.1,195.3L571.3,196.2L574.5,197.1L577.6,198.0L580.8,198.9L584.0,199.8" fill="none" stroke="var(--coffee)" stroke-width="2.5"></path><text x="345.8" y="28" font-size="11" text-anchor="middle" fill="var(--sleep)">집중 시간</text><line x1="568.1" x2="568.1" y1="16" y2="262" stroke="var(--muted)" stroke-dasharray="2 3"></line><text x="564.1" y="26" font-size="11" text-anchor="end" fill="var(--muted)">취침</text><circle cx="282.2" cy="30.1" r="5" fill="var(--coffee)"></circle><text x="274.2" y="22.1" font-size="11" text-anchor="end" fill="var(--coffee)">14:30 섭취</text></svg>
+    <div class="legend">
+<span><i style="background:var(--sleep)"></i>수면 압력 (상대값)</span>
+<span><i style="background:var(--clock)"></i>하루 리듬 각성 신호 (상대값)</span>
+<span><i style="background:var(--coffee)"></i>카페인 잔존량 (mg, 오른쪽 축)</span>
+<span><i style="background:var(--band);height:10px"></i>집중 시간</span></div>
+    <figcaption>예시 입력(평소 23:30 취침·07:00 기상, 지난밤 6시간 수면, 14:30에 아메리카노 1잔 236mg)으로 이 사이트의 모델이 계산한 곡선입니다. 실측값이 아닙니다.</figcaption>
+  </figure>
+</div>
+
+<section class="block"><div class="wrap">
+  <h2>세 가지를 함께 봅니다</h2>
+  <p class="lead">카페인은 졸음 신호를 막아서 느끼지 못하게 할 뿐, 쌓인 졸음을 지우지 못합니다. 그래서 카페인 양만 보지 않고 아래 세 가지를 같이 계산합니다.</p>
+  <div class="three">
+    <div><span class="key" style="background:var(--sleep)"></span><h3>수면 압력</h3><p>깨어 있는 시간이 길수록 쌓이고 잠을 자면 줄어드는 졸음의 크기입니다. 지난밤 수면이 짧으면 아침부터 높게 시작합니다.</p></div>
+    <div><span class="key" style="background:var(--clock)"></span><h3>하루 리듬</h3><p>시간대에 따라 각성 신호가 오르내리는 24시간 주기입니다. 아침형과 저녁형에 따라 위치를 조금 옮깁니다.</p></div>
+    <div><span class="key" style="background:var(--coffee)"></span><h3>몸에 남은 카페인</h3><p>마신 카페인은 시간이 지나며 반씩 줄어듭니다. 집중 시간에는 충분하고, 취침 때는 적게 남도록 맞춥니다.</p></div>
+  </div>
+</div></section>
+
+<section class="block"><div class="wrap">
+  <h2>이렇게 사용합니다</h2>
+  <ol class="steps-list">
+    <li><span class="n">1</span><div><h3>평소 생활을 알려 주세요</h3><p>수면 패턴, 흡연 여부, 체중, 지난밤 수면 시간을 입력합니다. 임신·수유 중이거나 18세 미만이거나 치료 중인 질환이 있으면 계산 대신 상담을 안내합니다.</p></div></li>
+    <li><span class="n">2</span><div><h3>오늘 계획을 입력하세요</h3><p>집중하고 싶은 시간, 오늘 잠들 시각, 이미 마신 카페인을 넣습니다. 메가커피와 편의점 에너지음료는 목록에서 고를 수 있습니다.</p></div></li>
+    <li><span class="n">3</span><div><h3>추천과 근거를 확인하세요</h3><p>언제 어떤 음료를 얼마나 마실지, 아니면 마시지 않아도 되는지를 알려 드립니다. 그래프와 계산에 쓴 값, 출처, 가정값도 함께 보여 드립니다.</p></div></li>
+  </ol>
+  <div class="btn-row"><a class="btn" href="#calculator">시작하기</a></div>
+</div></section>
+
+<section class="block"><div class="wrap">
+  <h2>왜 개인별 계산이 필요한가</h2>
+  <p class="lead">카페인이 몸에 남는 시간과 반응은 사람마다 다르고, 많은 사람이 하루에 얼마나 마시는지도 정확히 모릅니다.</p>
+  <ul class="facts">
+    <li><b>2~10시간</b><span>카페인 반감기가 문헌에서 보고되는 범위<small>개인차가 크다는 뜻입니다. 출처: <a href="https://cdn.clinicaltrials.gov/large-docs/21/NCT07090421/Prot_SAP_000.pdf">임상시험 계획서에 인용된 Snel &amp; Lorist(2011)</a></small></span></li>
+    <li><b>400mg</b><span>식약처 하루 최대 섭취 권고량(성인). 임산부 300mg, 어린이·청소년은 체중 1kg당 2.5mg<small>출처: <a href="https://eiec.kdi.re.kr/policy/materialView.do?num=288301&amp;topic=L">식약처 안내(2026.10.20)</a></small></span></li>
+    <li><b>약 42mg</b><span>한국 성인(19세 이상)의 하루 평균 카페인 섭취량. 상위 20%만 45.8mg 이상 섭취<small>국민건강영양조사 2013~2016 24시간 회상 자료 분석. 출처: <a href="https://koreascience.kr/article/JAKO201914456458792.pdf">이정숙 외(2019)</a></small></span></li>
+    <li><b>평균 모델</b><span>기존 공개 도구(2B-Alert Web)는 평균적인 사람의 반응을 예측하며, 개발진도 개인차를 반영하지 못한다고 밝힙니다<small>출처: <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC5103804">Reifman 외(2016)</a></small></span></li>
+  </ul>
+</div></section>
+
+<section class="block"><div class="wrap">
+  <h2>이 사이트가 하지 않는 것</h2>
+  <ul class="limits">
+    <li>진단이나 치료를 하지 않습니다. 결과는 생활 습관 참고용 추정치입니다.</li>
+    <li>카페인 대사 유전자형이나 실제 반감기를 판정하지 않습니다. 설문 답을 범위 값으로 옮긴 가정입니다.</li>
+    <li>졸음 지수는 이 프로젝트가 정의한 0~100의 상대값이며, KSS 같은 검증된 척도가 아닙니다.</li>
+    <li>어떤 값이 자체 가정이고 어떤 값이 문헌에서 온 것인지 <a href="#method">계산 원리</a> 페이지에 모두 표시했습니다.</li>
+  </ul>
+</div></section>
+</main>
+<main id="r-calculator" class="calc route">
+<div class="pagehead"><h1>카페인 타이밍 계산기</h1>
+<p>수면 압력, 하루 리듬, 몸에 남은 카페인을 함께 계산해 집중 시간에 맞는 한 잔을 찾습니다.</p></div>
+<ol class="steps" aria-hidden="true"><li></li><li></li><li></li><li></li></ol>
+<p class="stepname" id="stepname"></p>
+
+<!-- 1. 사전 설문 -->
+<section class="screen active" id="s1" aria-label="사전 설문">
+  <h2>먼저 평소 생활을 알려주세요</h2>
+  <p class="lead">반감기와 섭취 한도를 추정하는 데 씁니다.</p>
+
+  <fieldset>
+    <legend>해당하는 항목이 있나요?</legend>
+    <div class="choices">
+      <label><input type="checkbox" id="norisk"> 해당 없음</label>
+      <label><input type="checkbox" class="risk"> 임신 중이거나 수유 중</label>
+      <label><input type="checkbox" class="risk"> 만 18세 미만</label>
+      <label><input type="checkbox" class="risk"> 심장 질환·고혈압 등으로 치료 중이거나 복용 중인 약이 있음</label>
+    </div>
+    <p class="hint">해당하면 별도 기준이 적용되므로 이 계산기 대신 의사나 약사와 상담해 주세요.</p>
+  </fieldset>
+
+  <fieldset>
+    <legend>오후 6시 이후에 커피를 마셔도 밤에 잘 주무시나요?</legend>
+    <div class="choices">
+      <label><input type="radio" name="sens" value="good"> 잘 잔다</label>
+      <label><input type="radio" name="sens" value="mid" checked=""> 가끔 뒤척인다</label>
+      <label><input type="radio" name="sens" value="bad"> 잘 못 잔다</label>
+    </div>
+  </fieldset>
+
+  <fieldset>
+    <legend>담배를 피우시나요?</legend>
+    <div class="choices">
+      <label><input type="radio" name="smoke" value="n" checked=""> 아니요</label>
+      <label><input type="radio" name="smoke" value="y"> 예</label>
+    </div>
+  </fieldset>
+
+  <fieldset>
+    <legend>평소 수면 패턴</legend>
+    <div class="row">
+      <label class="f">평소 잠드는 시각<input type="time" id="hb" value="23:30"></label>
+      <label class="f">평소 일어나는 시각<input type="time" id="hw" value="07:00"></label>
+    </div>
+  </fieldset>
+
+  <fieldset>
+    <legend>평소 언제 가장 정신이 맑으신가요?</legend>
+    <div class="choices">
+      <label><input type="radio" name="chrono" value="am"> 아침</label>
+      <label><input type="radio" name="chrono" value="noon"> 낮 (점심 무렵)</label>
+      <label><input type="radio" name="chrono" value="pm"> 저녁 또는 밤</label>
+      <label><input type="radio" name="chrono" value="eq"> 비슷함</label>
+      <label><input type="radio" name="chrono" value="na" checked=""> 잘 모르겠음</label>
+    </div>
+  </fieldset>
+
+  <fieldset>
+    <legend>신체 정보</legend>
+    <div class="row">
+      <label class="f">몸무게 (kg)<input type="number" id="wt" min="30" max="200" value="65"></label>
+      <label class="f">키 (cm)<input type="number" id="ht" min="120" max="220" value="170"></label>
+      <label class="f">성별<select id="sex"><option>선택 안 함</option><option>여성</option><option>남성</option></select></label>
+    </div>
+    <p class="hint">현재 계산에는 몸무게만 쓰입니다.</p>
+  </fieldset>
+
+  <fieldset>
+    <legend>지난밤 수면</legend>
+    <div class="row">
+      <label class="f">실제로 잔 시간 (시간)<input type="number" id="slept" min="0" max="16" step="0.5" value="6"></label>
+      <label class="f">오늘 일어난 시각<input type="time" id="tw" value="07:00"></label>
+    </div>
+    <div class="choices" style="margin-top:10px" role="group" aria-label="수면 컨디션">
+      <label><input type="radio" name="cond" value="나쁨"> 개운하지 않음</label>
+      <label><input type="radio" name="cond" value="보통" checked=""> 보통</label>
+      <label><input type="radio" name="cond" value="좋음"> 개운함</label>
+    </div>
+  </fieldset>
+
+  <fieldset>
+    <legend>지금 얼마나 졸리신가요? <span class="rangeval" id="yv">5점</span> / 10점</legend>
+    <input type="range" id="y" min="1" max="10" value="5" aria-label="현재 졸음 점수">
+    <div style="display:flex;justify-content:space-between" class="hint"><span>전혀 졸리지 않음</span><span>깨어 있기 어려움</span></div>
+  </fieldset>
+
+  <div class="err" id="e1"></div>
+  <div class="btns"><span></span><button class="primary" id="to2">다음</button></div>
+</section>
+
+<!-- 2. 중간 결과 -->
+<section class="screen" id="s2" aria-label="중간 결과">
+  <h2>추정 결과</h2>
+  <p class="lead" id="s2lead"></p>
+  <div class="figs" id="figs2"></div>
+  <div class="note" id="s2note"></div>
+  <div class="btns"><button id="back1">이전</button><button class="primary" id="to3">오늘 계획 입력</button></div>
+</section>
+
+<!-- 3. 오늘 계획 -->
+<section class="screen" id="s3" aria-label="오늘 계획">
+  <h2>오늘 계획을 알려주세요</h2>
+  <p class="lead">이미 마신 카페인과 집중하고 싶은 시간을 반영합니다.</p>
+
+  <fieldset>
+    <legend>시간</legend>
+    <div class="row">
+      <label class="f">현재 시각<input type="time" id="now"></label>
+      <label class="f">오늘 잠들 예정 시각<input type="time" id="tb" value="23:30"></label>
+    </div>
+  </fieldset>
+
+  <fieldset>
+    <legend>집중하고 싶은 시간</legend>
+    <div class="row">
+      <label class="f">시작<input type="time" id="fs" value="15:00"></label>
+      <label class="f">끝<input type="time" id="fe" value="18:00"></label>
+    </div>
+  </fieldset>
+
+  <fieldset>
+    <legend>가장 최근에 마신 카페인</legend>
+    <div class="choices" id="rsrcs" role="radiogroup" aria-label="가장 최근에 마신 음료 종류">
+      <label><input type="radio" name="rsrc" value="manual" checked=""> 직접 입력 (mg)</label>
+      <label><input type="radio" name="rsrc" value="mega"> 메가커피</label>
+      <label><input type="radio" name="rsrc" value="cvs"> 편의점 에너지음료</label>
+      <label class="disabled" title="음료 데이터 준비 중"><input type="radio" name="rsrc" value="mammoth" disabled=""> 매머드 익스프레스 (데이터 준비 중)</label>
+    </div>
+    <div class="row" id="rpick" style="display:none;margin:10px 0 12px">
+      <label class="f">음료<select id="rdrink"></select></label>
+      <label class="f">마신 양<select id="rqty"><option value="0.5">반 잔</option><option value="1" selected="">1잔</option><option value="1.5">1.5잔</option><option value="2">2잔</option></select></label>
+    </div>
+    <div class="row">
+      <label class="f">마신 시각<input type="time" id="t0" value="10:00"></label>
+      <label class="f">카페인 양 (mg, 안 마셨으면 0)<input type="number" id="d0" min="0" max="1000" value="100"></label>
+      <label class="f">오늘 마신 카페인 총량 (mg)<input type="number" id="dtot" min="0" max="2000" value="100"></label>
+    </div>
+    <p class="hint">음료를 고르면 카페인 양이 자동으로 채워지며 직접 고칠 수도 있습니다. 총량에는 가장 최근 한 잔도 포함해 주세요.</p>
+  </fieldset>
+
+  <fieldset>
+    <legend>어디서 드실 건가요?</legend>
+    <div class="choices" id="srcs">
+      <label><input type="radio" name="src" value="mega" checked=""> 메가커피</label>
+      <label><input type="radio" name="src" value="cvs"> 편의점 에너지음료</label>
+      <label><input type="radio" name="src" value="custom"> 기타 (직접 입력)</label>
+      <label class="disabled" title="음료 데이터 준비 중"><input type="radio" name="src" value="mammoth" disabled=""> 매머드 익스프레스 (데이터 준비 중)</label>
+    </div>
+  </fieldset>
+
+  <fieldset id="pickbox">
+    <legend>음료</legend>
+    <select id="drink"></select>
+    <p class="hint">“상관없음”을 고르면 조건에 맞는 카페인 양의 음료를 골라 드립니다.</p>
+  </fieldset>
+  <fieldset id="custombox" style="display:none">
+    <legend>음료 정보</legend>
+    <div class="row">
+      <label class="f">이름<input type="text" id="cname" value="내 음료"></label>
+      <label class="f">한 잔당 카페인 (mg)<input type="number" id="cmg" min="1" max="1000" value="120"></label>
+    </div>
+  </fieldset>
+
+  <div class="err" id="e3"></div>
+  <div class="btns"><button id="back2">이전</button><button class="primary" id="to4">계산하기</button></div>
+</section>
+
+<!-- 4. 결과 -->
+<section class="screen" id="s4" aria-label="결과">
+  <h2>오늘의 추천</h2>
+  <p class="verdict" id="verdict"></p>
+  <div id="warns"></div>
+  <div class="figs" id="figs4"></div>
+
+  <div class="chartwrap">
+    <svg id="chart" viewBox="0 0 640 280" role="img" aria-label="지금부터 취침까지 수면 압력, 하루 리듬, 카페인 잔존량 변화"></svg>
+    <div class="legend">
+      <span><i style="background:var(--sleep)"></i>수면 압력 (상대값)</span>
+      <span><i style="background:var(--clock)"></i>하루 리듬 각성 신호 (상대값, 실제 진폭 그대로)</span>
+      <span><i style="background:var(--coffee)"></i>카페인 잔존량 (mg, 오른쪽 축)</span>
+      <span><i style="background:var(--band);height:10px"></i>집중 시간</span>
+    </div>
+  </div>
+
+  <details>
+    <summary>계산에 쓴 값과 근거</summary>
+    <div class="tablewrap"><table id="basis"></table></div>
+  </details>
+
+  <p class="disclaimer">※ 이 결과는 정확하지 않을 수 있으며, 기타 컨디션에 따라 참고용으로만 사용하시길 권합니다. 의학적 조언을 대신하지 않습니다. 졸음 지수는 이 프로젝트에서 정의한 상대값이며 검증된 척도(KSS 등)가 아닙니다.</p>
+  <div class="btns"><button id="back3">계획 고치기</button><button class="primary" id="restart">처음부터</button></div>
+</section>
+
+</main>
+<main id="r-method" class="wrap route"><article class="page narrow">
+<h1>계산 원리</h1>
+<p class="meta">계산기가 쓰는 식, 값, 출처를 모두 적었습니다. <span class="tag">문헌</span>은 논문이나 공식 기준에서 온 값, <span class="tag own">자체 가정</span>은 팀이 정한 값입니다.</p>
+<ul class="toc"><li><a href="#method" data-goto="m-s">수면 압력</a></li><li><a href="#method" data-goto="m-c">하루 리듬</a></li><li><a href="#method" data-goto="m-k">카페인 잔존량</a></li><li><a href="#method" data-goto="m-rec">추천 규칙</a></li><li><a href="#method" data-goto="m-table">가정값 표</a></li><li><a href="#method" data-goto="m-refs">참고 문헌</a></li></ul>
+
+<h2 id="m-s">1. 수면 압력 H(t)</h2>
+<p>깨어 있는 동안 졸음이 쌓이고 자는 동안 줄어드는 항상성 과정(Process S)입니다. 0과 1 사이의 상대값으로 계산합니다.</p>
+<pre class="eq">깨어 있을 때   H(t) = μw + (H_wake − μw) · e^(−(t − t_wake) / χw)
+잘 때          H(t) = μs + (H_on − μs) · e^(−t / χs)
+μw = 1, μs = 0,  χw = 18.2시간,  χs = 4.2시간</pre>
+<p>H_wake(오늘 기상 시 수면 압력)는 지난밤 실제 수면 시간을 위 "잘 때" 식에 넣어 구합니다. H_on(취침 시 수면 압력)은 평소 취침·기상 패턴이 매일 반복된다고 보고 두 식을 이어 붙인 주기 조건으로 풉니다.</p>
+<pre class="eq">H_on = [ μw(1 − a) + a·μs(1 − b) ] / (1 − a·b)
+a = e^(−깨어 있는 시간 / χw),  b = e^(−잠자는 시간 / χs)</pre>
+
+<h2 id="m-c">2. 하루 리듬 C(t)</h2>
+<p>24시간 주기로 오르내리는 각성 신호(Process C)를 코사인으로 단순화했습니다.</p>
+<pre class="eq">C(t) = A · cos( 2π · (t − φ) / 24 ),   A = 0.15
+φ = 평소 기상 시각 + 9시간 (아침형 −1.5시간, 낮형 −0.75시간, 저녁형 +1.5시간)</pre>
+<p>졸음의 크기는 Z(t) = H(t) − C(t)로 계산하고, 졸음 지수 = Z(t) / 0.8을 0~100으로 자른 값입니다. 이 지수는 팀이 정의한 상대값이며 KSS 같은 검증된 졸음 척도가 아닙니다.</p>
+
+<h2 id="m-k">3. 카페인 잔존량 K(t)</h2>
+<pre class="eq">K(t) = Σ  D · (1/2)^((t − t_d) / h)      (t ≥ t_d)
+D: 마신 양(mg),  t_d: 마신 시각,  h: 반감기</pre>
+<p>흡수 과정을 생략한 단순 식이라 마신 직후의 값은 실제와 다를 수 있습니다. 반감기는 설문 답에서 정한 중심값을 쓰고, 화면에는 0.8~1.4배 범위로 보여 줍니다. 취침 시 잔존량은 범위의 느린 쪽(중심값의 1.4배)으로 확인합니다.</p>
+
+<h2 id="m-rec">4. 추천 규칙</h2>
+<ol>
+<li>집중 시간의 평균 졸음 지수(카페인 제외)를 구합니다.</li>
+<li>지수가 35 미만이면 추가 섭취를 권하지 않습니다. 35~55는 1회 상한의 50%, 55~75는 75%, 75 이상은 100%를 목표로 잡습니다.</li>
+<li>필요량 = 목표량 − 집중 시작 시점에 이미 남아 있는 카페인. 필요량이 20mg 미만이면 추가 섭취를 권하지 않습니다.</li>
+<li>섭취 가능 상한 = min(1회 상한, 오늘 남은 허용량, 취침 시 잔존량 한도 안에서 허용되는 양).</li>
+<li>상한 안에서 필요량에 가장 가까운 음료와 양(반 잔, 1잔, 1.5잔, 2잔)을 고릅니다. 섭취 시각은 집중 시작 30분 전입니다.</li>
+</ol>
+<p>2번과 5번의 기준은 팀이 임시로 정한 규칙이며, 실제 졸음 기록으로 검증해야 합니다.</p>
+
+<h2 id="m-table">5. 값과 근거</h2>
+<div class="tablewrap"><table>
+<tbody><tr><th>항목</th><th>값</th><th>구분과 출처</th></tr>
+<tr><td>수면 압력 시간상수 χw, χs</td><td>18.2시간, 4.2시간</td><td><span class="tag">문헌</span> Nature 계열 논문(s44323-025-00039-z) 그림의 예시 매개변수. 개인 측정값이 아닙니다</td></tr>
+<tr><td>수면 압력 상한·하한 μw, μs</td><td>1, 0</td><td><span class="tag own">자체 가정</span> 정규화 가정이며 논문의 실제 값은 확인 중입니다</td></tr>
+<tr><td>하루 리듬 형태</td><td>코사인, 24시간 주기</td><td><span class="tag">문헌</span> Borbély(2022)의 주기적 Process C를 코사인으로 구현</td></tr>
+<tr><td>하루 리듬 진폭, 위상</td><td>A = 0.15, 평소 기상 + 9시간, 아침형 −1.5시간·낮형 −0.75시간·저녁형 +1.5시간</td><td><span class="tag own">자체 가정</span></td></tr>
+<tr><td>카페인 반감기</td><td>잘 잔다 4시간, 가끔 뒤척인다 5시간, 잘 못 잔다 6시간. 범위는 0.8~1.4배</td><td><span class="tag own">자체 가정</span> 설문 한 문항을 숫자로 옮긴 매핑이라 근거가 약합니다</td></tr>
+<tr><td>흡연 보정</td><td>반감기 × (3.0 / 4.3)</td><td><span class="tag">문헌</span> PubMed 19125908 보고값(비흡연 약 4.3시간, 흡연 약 3.0시간). 해당 연구 대상에 한정됩니다</td></tr>
+<tr><td>하루 최대 섭취량</td><td>400mg</td><td><span class="tag">문헌</span> 건강한 성인 기준(FDA, EFSA 2015, 식약처)</td></tr>
+<tr><td>1회 섭취 상한</td><td>200mg과 체중 1kg당 3mg 중 작은 값</td><td><span class="tag">문헌</span> EFSA 2015: 1회 약 200mg(체중 1kg당 3mg)까지 안전 우려 없음</td></tr>
+<tr><td>섭취 후 효과 시작</td><td>30분</td><td><span class="tag own">자체 가정</span> 흡수 시간은 개인차가 큽니다</td></tr>
+<tr><td>취침 시 잔존량 한도</td><td>50mg</td><td><span class="tag own">자체 가정</span> 이 값 이하면 수면에 영향이 없다는 검증된 기준은 없습니다</td></tr>
+<tr><td>추천 양 규칙</td><td>졸음 지수 35·55·75 기준으로 1회 상한의 0·50·75·100%</td><td><span class="tag own">자체 가정</span> 임시 규칙, 실제 졸음 데이터로 검증 필요</td></tr>
+</tbody></table></div>
+
+<h2 id="m-refs">참고 문헌</h2>
+<ul class="refs">
+<li>Borbély AA 외. Process S와 Process C 관련 논문(2022). <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC9540767">PMC9540767</a></li>
+<li>카페인 반감기와 흡연 영향 연구. <a href="https://pubmed.ncbi.nlm.nih.gov/19125908/">PubMed 19125908</a></li>
+<li>Reifman J 외(2016). 2B-Alert Web: 수면·카페인이 신경행동 수행에 미치는 영향 예측 도구. <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC5103804">PMC5103804</a></li>
+<li>Ramakrishnan S 외(2016). 수면과 카페인의 효과를 예측하는 통합 성능 모델. <a href="https://pubmed.ncbi.nlm.nih.gov/27397562/">PubMed 27397562</a></li>
+<li>Reifman J 외(2022). 2B-Alert Web 2.0. <a href="https://jmir.org/2022/1/e29595/PDF">JMIR 24(1):e29595</a></li>
+<li>식약처(2026.10.20). 카페인 함유 식품 섭취 시 주의사항. <a href="https://eiec.kdi.re.kr/policy/materialView.do?num=288301&amp;topic=L">안내문</a></li>
+<li>EFSA(2015). 카페인 안전성에 관한 과학적 의견.</li>
+</ul>
+</article></main>
+<main id="r-about" class="wrap route"><article class="page narrow">
+<h1>프로젝트 소개</h1>
+<p class="meta">Bio:ON 팀 · 바이오헬스 AI 경진대회 출품 프로젝트</p>
+
+<h2>풀려는 문제</h2>
+<p>카페인은 졸음을 없애지 않고 졸음 신호를 가립니다. 그래서 같은 한 잔이라도 지난밤 수면이 부족한 날, 몸에 이미 카페인이 남아 있는 날, 하루 리듬상 졸린 시간대에 따라 효과가 다르고, 취침 때 남은 양은 잠을 방해할 수 있습니다. 이 모든 것에 개인차가 큰데도 대부분의 도구는 마지막 섭취 시각만 알려 줍니다.</p>
+<p>Focus:ON은 사용자가 집중하고 싶은 시간을 먼저 정하고, 그 시간에 필요한 카페인과 취침 때 남는 카페인을 함께 계산합니다.</p>
+
+<h2>선행 연구와의 차이</h2>
+<div class="tablewrap"><table>
+<tbody><tr><th></th><th>2B-Alert Web 2.0</th><th>Focus:ON</th></tr>
+<tr><td>대상</td><td>평균적인 사람의 반응속도(PVT) 예측</td><td>사용자의 설문·입력에 맞춘 졸음 곡선과 추천</td></tr>
+<tr><td>입력</td><td>수면·기상 일정, 카페인 용량과 시각, 최고 각성이 필요한 시간대</td><td>평소 수면 패턴, 지난밤 수면, 흡연, 체중, 집중 시간, 이미 마신 카페인과 음료</td></tr>
+<tr><td>출력</td><td>PVT 지표 예측과 최적 카페인 일정</td><td>마실 시각·음료·양 또는 "마시지 않아도 됨", 취침 시 잔존량, 근거 표</td></tr>
+<tr><td>사용성</td><td>전문가용 타임라인 인터페이스</td><td>단계별 입력, 한국어, 한국 카페 메뉴</td></tr>
+</tbody></table></div>
+<p>2B-Alert는 미 육군이 개발한 검증된 도구이며, 이 프로젝트의 모델 구조(수면 압력, 하루 리듬, 카페인 효과)는 같은 계열의 연구를 참고했습니다. 차이는 입력의 단순함과 한국 사용 환경이고, 개인 보정은 앞으로의 과제입니다.</p>
+
+<h2>개발 계획</h2>
+<ol>
+<li><b>현재</b>: 논문 식과 자체 가정으로 만든 규칙 기반 계산기</li>
+<li><b>다음</b>: 사용자 기록(졸음 점수, 카페인 섭취 시각과 양, 수면 시각)을 받아 개인 파라미터를 보정</li>
+<li><b>그다음</b>: 간이 반응속도 검사와 웨어러블(심박, HRV, 수면 단계) 연동</li>
+<li><b>검증</b>: 소규모 파일럿으로 예측 졸음과 실제 기록 비교</li>
+</ol>
+<p>공개 데이터 중에는 카페인 섭취 시각, 웨어러블 신호, 졸음 점수를 한꺼번에 담은 자료가 없어서, 개인 보정에 필요한 기록은 직접 수집해야 한다고 판단했습니다.</p>
+
+<h2>개인정보와 안전</h2>
+<ul>
+<li>입력값은 사용자의 브라우저 안에서만 계산되며, 이 사이트는 서버로 전송하거나 저장하지 않습니다.</li>
+<li>임신·수유 중, 만 18세 미만, 치료 중인 심혈관 질환이나 복용 약물이 있는 경우에는 일반 성인 기준을 적용하지 않고 상담을 안내합니다.</li>
+<li>하루 400mg, 1회 200mg(체중 1kg당 3mg), 취침 시 잔존량 한도를 넘지 않는 범위에서만 추천합니다.</li>
+</ul>
+
+<h2>팀</h2>
+<p>Bio:ON 팀</p>
+</article></main>
+<footer class="site-footer"><div class="wrap">
+  <div><p><b>Focus:ON</b> · Bio:ON</p>
+  <p>입력하신 정보는 이 브라우저 안에서만 계산되고 서버로 전송되지 않습니다.</p></div>
+  <div><p>이 사이트의 결과는 생활 습관 참고용 추정치이며 진단이나 치료를 대신하지 않습니다. 임신·수유 중이거나 심혈관 질환이 있거나 불면이 이어지면 의사나 약사와 상담해 주세요.</p>
+  <p><a href="#method">계산 원리와 가정값</a> · <a href="#about">프로젝트 소개</a></p></div>
+</div></footer>
+</div>
+<script type="application/json" id="edits">{"135": "Bio:ON 팀 (한인혜, 김도희, 이예지, 최가은)"}</script>
+<script>window.__CALC_ORIG=document.getElementById('r-calculator').innerHTML;</script>
+<script>const DATA = {"mega":[["커피","음, 괜찮은 휴식이군 블레이드 초코크림커피",null,null,591.0,242.7,"N"],["커피","초코젤라또 말차라떼",null,null,591.0,153.8,"N"],["커피","헛개리카노",591.0,236.0,710.0,236.0,"N"],["커피","왕메가카페라떼",null,null,946.0,354.0,"N"],["커피","왕메가헛개리카노",null,null,946.0,354.0,"N"],["커피","할메가미숫커피",null,null,591.0,176.5,"N"],["커피","라이트 바닐라 아몬드라떼",null,null,591.0,236.0,"N"],["커피","할메가커피",null,null,591.0,176.5,"N"],["커피","왕할메가커피",null,null,946.0,279.5,"N"],["커피","디카페인 헤이즐넛 아메리카노",591.0,7.8,null,null,"Y"],["커피","디카페인 바닐라 아메리카노",591.0,7.8,null,null,"Y"],["커피","에스프레소",59.0,118.0,null,null,"N"],["커피","에스프레소 도피오",147.0,236.0,null,null,"N"],["커피","아메리카노",591.0,236.0,710.0,236.0,"N"],["커피","메가리카노",null,null,946.0,354.0,"N"],["커피","꿀아메리카노",591.0,236.0,710.0,236.0,"N"],["커피","바닐라라떼",591.0,236.0,591.0,236.0,"N"],["커피","바닐라아메리카노",591.0,236.0,710.0,236.0,"N"],["커피","연유라떼",591.0,236.0,591.0,236.0,"N"],["커피","카라멜마끼아또",591.0,236.0,591.0,236.0,"N"],["커피","카페라떼",591.0,236.0,591.0,236.0,"N"],["커피","카페모카",591.0,237.9,591.0,237.9,"N"],["커피","카푸치노",591.0,236.0,591.0,236.0,"N"],["커피","콜드브루라떼",591.0,210.0,591.0,157.5,"N"],["커피","콜드브루오리지널",591.0,210.0,591.0,157.5,"N"],["커피","헤이즐넛라떼",591.0,236.0,591.0,236.0,"N"],["커피","헤이즐넛아메리카노",591.0,236.0,710.0,236.0,"N"],["커피","큐브라떼",null,null,591.0,393.3,"N"],["티","왕메가아이스티",null,null,946.0,41.2,"N"],["티","제로복숭아아이스티",null,null,710.0,13.0,"N"],["티","녹차",591.0,30.6,710.0,54.3,"N"],["티","얼그레이",591.0,50.4,710.0,67.2,"N"],["티","복숭아아이스티",null,null,710.0,24.0,"N"],["티","허니자몽블랙티",591.0,37.2,710.0,37.0,"N"],["에이드&주스","체리콜라",null,null,710.0,24.0,"N"],["스무디&프라페","코코넛 커피 스무디",null,null,591.0,236.0,"N"],["스무디&프라페","녹차프라페",null,null,591.0,158.2,"N"],["스무디&프라페","리얼초코프라페",null,null,591.0,3.5,"N"],["스무디&프라페","초코허니퐁크러쉬",null,null,591.0,2.1,"N"],["스무디&프라페","커피프라페",null,null,591.0,236.0,"N"],["디카페인","디카페인 왕메가카페라떼",null,null,946.0,11.7,"Y"],["디카페인","디카페인 라이트 바닐라 아몬드라떼",null,null,591.0,7.8,"Y"],["디카페인","디카페인 헛개리카노",591.0,7.8,710.0,7.8,"Y"],["디카페인","디카페인 왕메가헛개리카노",null,null,946.0,11.7,"Y"],["디카페인","디카페인 에스프레소",59.0,3.9,null,null,"Y"],["디카페인","디카페인 아메리카노",591.0,7.8,710.0,7.8,"Y"],["디카페인","디카페인 꿀아메리카노",591.0,7.8,710.0,7.8,"Y"],["디카페인","디카페인 카페라떼",591.0,7.8,591.0,7.8,"Y"],["디카페인","디카페인 카푸치노",591.0,7.8,591.0,7.8,"Y"],["디카페인","디카페인 바닐라라떼",591.0,7.8,591.0,7.8,"Y"],["디카페인","디카페인 헤이즐넛라떼",591.0,7.8,591.0,7.8,"Y"],["디카페인","디카페인 카라멜마끼아또",591.0,7.8,591.0,7.8,"Y"],["디카페인","디카페인 연유라떼",591.0,7.8,591.0,7.8,"Y"],["디카페인","디카페인 카페모카",591.0,9.7,591.0,9.7,"Y"],["디카페인","디카페인 메가리카노",null,null,946.0,11.7,"Y"],["디카페인","디카페인 헤이즐넛 아메리카노",null,null,710.0,7.8,"Y"],["디카페인","디카페인 바닐라 아메리카노",null,null,710.0,7.8,"Y"],["디카페인","콜드브루 디카페인",591.0,8.7,591.0,6.5,"Y"],["디카페인","콜드브루 디카페인 라떼",591.0,8.7,591.0,6.5,"Y"],["음료","왕메가초코",null,null,946.0,4.3,"N"],["음료","토피넛라떼",591.0,49.3,591.0,49.3,"N"],["음료","오레오초코라떼",null,null,591.0,1.1,"N"],["음료","흑당버블밀크티라떼",null,null,591.0,14.3,"N"],["음료","핫초코",591.0,4.5,null,null,"N"],["음료","녹차라떼",591.0,57.0,591.0,72.5,"N"],["음료","로얄밀크티라떼",591.0,74.7,591.0,74.7,"N"],["음료","흑당밀크티라떼",null,null,591.0,8.1,"N"],["음료","아이스초코",null,null,591.0,2.8,"N"],["신상품","딥 초코 체리 프라페",null,null,591.0,26.0,"N"],["신상품","쫀득 모찌 밀크티",null,null,591.0,14.2,"N"],["신상품","하우스밀크 라떼",null,null,591.0,118.0,"N"],["신상품","저당 골든애플 블랙티",null,null,710.0,68.0,"N"]],"cvs":[["몬스터","몬스터 에너지",355.0,100.0],["몬스터","몬스터 에너지 울트라",355.0,100.0],["핫식스","핫식스 더킹",355.0,100.0],["핫식스","핫식스 더킹",500.0,200.0],["핫식스","핫식스 오리지널",250.0,60.0],["레드불","레드불",250.0,62.5],["박카스","박카스 F",120.0,30.0],["박카스","박카스 D",100.0,30.0]]};
+</script>
+<script>/* 음료 카페인 값의 출처: 제출 전에 공식 영양정보 URL과 확인일을 기입하세요 */
+const SOURCES = { mega:'', cvs:'' };
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+/* ---------- 모델 매개변수 (출처/가정은 결과 화면 표에 표시) ---------- */
+const P = {
+  muW:1, muS:0,          // 정규화 가정 (논문의 실제 값 미확인)
+  chiW:18.2, chiS:4.2,   // Nature s44323-025-00039-z 그림 예시값
+  A:0.15,                // 일주기 진폭: 자체 가정
+  phiAfterWake:9,        // 각성 신호 최대 시점 = 평소 기상 + 9h: 자체 가정
+  onset:0.5,             // 섭취 후 효과 시작까지 0.5h: 자체 가정
+  bedLimit:50,           // 취침 시 잔존량 한도 50mg: 자체 가정
+  daily:400, single:200, perKg:3
+};
+
+const $ = id => document.getElementById(id);
+const toH = s => { const [h,m] = s.split(':').map(Number); return h + m/60; };
+const fmt = h => { const d = Math.floor(h/24); let x = ((h%24)+24)%24;
+  let hh = Math.floor(x), mm = Math.round((x-hh)*60); if(mm===60){hh=(hh+1)%24;mm=0;}
+  return (d>0?'다음 날 ':d<0?'어제 ':'') + String(hh).padStart(2,'0')+':'+String(mm).padStart(2,'0'); };
+const val = n => (document.querySelector(`input[name="${n}"]:checked`)||{}).value;
+const clamp = (x,a,b) => Math.min(b,Math.max(a,x));
+const r0 = x => Math.round(x);
+
+/* ---------- 화면 전환 ---------- */
+const names = ['1. 사전 설문','2. 추정 결과','3. 오늘 계획','4. 추천'];
+function go(n){
+  document.querySelectorAll('.screen').forEach((s,i)=>s.classList.toggle('active',i===n-1));
+  document.querySelectorAll('ol.steps li').forEach((l,i)=>l.classList.toggle('on',i<n));
+  $('stepname').textContent = names[n-1];
+  window.scrollTo({top:0});
+}
+go(1);
+$('y').oninput = e => $('yv').textContent = e.target.value + '점';
+const nd = new Date(); $('now').value = String(nd.getHours()).padStart(2,'0')+':'+String(nd.getMinutes()).padStart(2,'0');
+
+/* ---------- 1→2: 반감기, 한도 ---------- */
+let S = {};
+function halfLife(){
+  const base = {good:4, mid:5, bad:6}[val('sens')];          // 자체 매핑 (근거 없음, 가정)
+  const smoker = val('smoke')==='y';
+  const h = smoker ? base*(3.0/4.3) : base;                       // 흡연 보정: 19125908 보고값 비율
+  return { h, base, smoker, lo:h*0.8, hi:h*1.4 };                  // 범위(0.8~1.4배)는 자체 가정
+}
+$('to2').onclick = () => {
+  const e = $('e1'); e.style.display='none';
+  if (![...document.querySelectorAll('.risk')].some(c=>c.checked) && !$('norisk').checked){ e.textContent='해당하는 항목을 고르거나 "해당 없음"을 선택해 주세요.'; e.style.display='block'; return; }
+  if ([...document.querySelectorAll('.risk')].some(c=>c.checked)){
+    $('s2lead').textContent = '';
+    $('figs2').innerHTML = '';
+    $('s2note').className = 'stop';
+    $('s2note').innerHTML = '선택하신 항목에 해당하면 일반 성인 기준을 그대로 적용하기 어렵습니다. 한국 식약처는 임산부와 어린이·청소년에게 별도 섭취 기준을 두고 있습니다. 이 계산기로 섭취량을 정하기보다 의사나 약사와 상담해 주세요.';
+    $('to3').style.display='none';
+    go(2); return;
+  }
+  const wt = +$('wt').value, slept = +$('slept').value;
+  if (!(wt>=30 && wt<=200)){ e.textContent='몸무게를 30~200kg 사이로 입력해 주세요.'; e.style.display='block'; return; }
+  if (!(slept>=0 && slept<=16)){ e.textContent='지난밤 수면 시간을 0~16시간 사이로 입력해 주세요.'; e.style.display='block'; return; }
+  const hl = halfLife();
+  const single = Math.min(P.single, P.perKg*wt);
+  S = { ...S, hl, single, wt, slept };
+  $('to3').style.display='';
+  $('s2note').className = 'note';
+  $('s2lead').textContent = '입력하신 정보로 계산한 값입니다.';
+  $('figs2').innerHTML = `
+    <div class="fig"><b>약 ${hl.lo.toFixed(1)}~${hl.hi.toFixed(1)}시간</b><span>추정 카페인 반감기 (계산 중심값 ${hl.h.toFixed(1)}시간)</span></div>
+    <div class="fig"><b>${r0(single)}mg</b><span>1회 섭취 상한</span></div>
+    <div class="fig"><b>${P.daily}mg</b><span>건강한 성인 하루 최대 섭취량</span></div>`;
+  $('s2note').innerHTML = `반감기는 설문 답을 숫자로 옮긴 <b>프로젝트 자체 추정값</b>입니다(잘 잔다 4시간, 가끔 뒤척인다 5시간, 잘 못 잔다 6시간${hl.smoker?', 흡연 시 연구 보고값 비율 3.0/4.3을 곱함':''}). 범위는 중심값의 0.8~1.4배로 둔 자체 가정이며, 취침 시 잔존량을 확인할 때는 느린 쪽(${hl.hi.toFixed(1)}시간)을 씁니다. 1회 상한은 200mg과 체중 1kg당 3mg 중 작은 값입니다.`;
+  go(2);
+};
+$('back1').onclick = () => go(1);
+/* '해당 없음'은 다른 항목과 함께 고를 수 없음 */
+$('norisk').onchange = () => { if ($('norisk').checked) document.querySelectorAll('.risk').forEach(c=>c.checked=false); };
+document.querySelectorAll('.risk').forEach(c=>c.onchange = () => { if (c.checked) $('norisk').checked=false; });
+$('to3').onclick = () => { fillDrinks(); go(3); };
+$('back2').onclick = () => go(2);
+$('back3').onclick = () => go(3);
+$('restart').onclick = () => go(1);
+
+/* ---------- 음료 목록 ---------- */
+function options(src){
+  if (src==='mega'){
+    const out=[];
+    DATA.mega.forEach((r,i)=>{
+      if (r[3]!=null) out.push({key:`m${i}H`,cat:(r[6]==='Y'?'디카페인':r[0]),name:`${r[1]} (HOT ${r[2]}ml)`,mg:r[3],decaf:r[6]==='Y',shop:'메가커피'});
+      if (r[5]!=null) out.push({key:`m${i}I`,cat:(r[6]==='Y'?'디카페인':r[0]),name:`${r[1]} (ICE ${r[4]}ml)`,mg:r[5],decaf:r[6]==='Y',shop:'메가커피'});
+    });
+    return out;
+  }
+  if (src==='cvs') return DATA.cvs.map((r,i)=>({key:`c${i}`,cat:(r[6]==='Y'?'디카페인':r[0]),name:`${r[1]} (${r[2]}ml)`,mg:r[3],decaf:false,shop:'편의점'}));
+  return [{key:'custom',cat:'기타',name:$('cname').value||'내 음료',mg:+$('cmg').value,decaf:false,shop:null}];
+}
+function fillDrinks(){
+  const src = val('src');
+  $('pickbox').style.display = src==='custom'?'none':'';
+  $('custombox').style.display = src==='custom'?'':'none';
+  if (src==='custom') return;
+  const opts = options(src), sel = $('drink');
+  const groups = {};
+  opts.forEach(o=>(groups[o.cat]=groups[o.cat]||[]).push(o));
+  sel.innerHTML = '<option value="any">상관없음 (추천받기)</option>' +
+    Object.entries(groups).map(([c,arr])=>`<optgroup label="${c}">`+arr.map(o=>`<option value="${o.key}">${o.name} · ${o.mg}mg</option>`).join('')+'</optgroup>').join('');
+}
+document.querySelectorAll('input[name="src"]').forEach(r=>r.onchange=fillDrinks);
+
+/* ---------- 가장 최근에 마신 음료 선택 → 카페인 양 자동 입력 ---------- */
+function fillRecent(){
+  const src = val('rsrc');
+  $('rpick').style.display = src==='manual' ? 'none' : '';
+  if (src==='manual') return;
+  const groups = {};
+  options(src).forEach(o=>(groups[o.cat]=groups[o.cat]||[]).push(o));
+  $('rdrink').innerHTML = Object.entries(groups).map(([c,arr])=>`<optgroup label="${c}">`+arr.map(o=>`<option value="${o.key}">${o.name} · ${o.mg}mg</option>`).join('')+'</optgroup>').join('');
+  applyRecent();
+}
+function applyRecent(){
+  const src = val('rsrc'); if (src==='manual') return;
+  const o = options(src).find(o=>o.key===$('rdrink').value); if (!o) return;
+  const keepTotal = (+$('dtot').value === +$('d0').value);      // 총량을 따로 고치지 않았으면 함께 갱신
+  const mg = Math.round(o.mg * (+$('rqty').value));
+  $('d0').value = mg;
+  if (keepTotal || +$('dtot').value < mg) $('dtot').value = mg;
+}
+document.querySelectorAll('input[name="rsrc"]').forEach(r=>r.onchange=fillRecent);
+$('rdrink').onchange = applyRecent; $('rqty').onchange = applyRecent;
+
+/* ---------- 모델 ---------- */
+function buildModel(){
+  const hb = toH($('hb').value), hw = toH($('hw').value);
+  let Sh = ((hw - hb) % 24 + 24) % 24; if (Sh===0) Sh = 8;
+  const Wh = 24 - Sh;
+  // 평소 패턴을 무한 반복했을 때의 정상상태 취침 시 수면 압력 (Eq.4·5를 주기 조건으로 풀어서 얻은 닫힌 형태)
+  const a = Math.exp(-Wh/P.chiW), b = Math.exp(-Sh/P.chiS);
+  const Hon = (P.muW*(1-a) + a*P.muS*(1-b)) / (1 - a*b);
+  const Hwake = P.muS + (Hon - P.muS)*Math.exp(-S.slept/P.chiS);       // Eq.5: 지난밤 실제 수면
+  let tw = toH($('tw').value);
+  const N = toH($('now').value);
+  if (tw > N) tw -= 24;
+  const H = t => P.muW + (Hwake - P.muW)*Math.exp(-(t - tw)/P.chiW);  // Eq.4
+  const shift = {am:-1.5, noon:-0.75, pm:1.5, eq:0, na:0}[val('chrono')];          // 자체 가정
+  const phi = hw + P.phiAfterWake + shift;
+  const C = t => P.A*Math.cos(2*Math.PI*(t - phi)/24);                  // B = 0
+  const Z = t => H(t) - C(t);
+  const idx = t => clamp(Z(t)/0.8, 0, 1)*100;                           // 0~100 상대 졸음 지수 (자체 정의)
+  return {H,C,Z,idx,Hon,Hwake,tw,phi,N,Sh};
+}
+const resid = (doses,t,h) => doses.reduce((s,d)=> t>=d.t ? s + d.mg*Math.pow(0.5,(t-d.t)/h) : s, 0);
+
+/* ---------- 3→4: 추천 ---------- */
+$('to4').onclick = () => {
+  const e = $('e3'); e.style.display='none';
+  const M = buildModel(), N = M.N, h = S.hl.h;
+  let fs = toH($('fs').value), fe = toH($('fe').value), tb = toH($('tb').value), t0 = toH($('t0').value);
+  const d0 = Math.max(0, +$('d0').value||0);
+  if (fe <= fs) fe += 24;
+  if (fe <= N){ e.textContent='집중 시간이 이미 지났습니다. 지금 이후의 시간으로 입력해 주세요.'; e.style.display='block'; return; }
+  if (tb <= N) tb += 24;
+  if (t0 > N) t0 -= 24;
+  const fsEff = Math.max(fs, N);
+  if (tb < fe){ e.textContent='잠들 예정 시각이 집중 시간이 끝나기 전입니다. 시간을 다시 확인해 주세요.'; e.style.display='block'; return; }
+  const src = val('src');
+  if (src==='custom' && !(+$('cmg').value>0)){ e.textContent='한 잔당 카페인 양을 입력해 주세요.'; e.style.display='block'; return; }
+
+  const warns=[];
+  const dtotIn = Math.max(0, +$('dtot').value||0);
+  const dtot = Math.max(d0, dtotIn);
+  if (dtotIn < d0) warns.push('오늘 총량이 가장 최근 한 잔보다 적어서 총량을 최근 양으로 맞춰 계산했습니다.');
+  const earlier = dtot - d0;
+  const te = d0>0 ? (t0>M.tw ? (M.tw+t0)/2 : t0) : (M.tw+N)/2;   // 이전 섭취분은 기상~최근 섭취 중간 시각에 마신 것으로 근사
+  const prev = [];
+  if (d0>0) prev.push({t:t0, mg:d0});
+  if (earlier>0) prev.push({t:te, mg:earlier});
+  const ti = Math.max(N, fsEff - P.onset);                       // 섭취 시각
+  // 집중 시간 평균 졸음 지수
+  let sum=0,n=0; for(let t=fsEff;t<=fe+1e-9;t+=0.25){sum+=M.idx(t);n++;}
+  const focusIdx = sum/n;
+  const tier = focusIdx<35?0: focusIdx<55?0.5: focusIdx<75?0.75:1;     // 자체 규칙(임시)
+  const kAtFocus = resid(prev, fsEff, h);
+  const need = Math.max(0, tier*S.single - kAtFocus);
+  const hSlow = S.hl.hi;                                         // 취침 시 잔존량은 느린 대사 시나리오로 확인
+  const dailyLeft = Math.max(0, P.daily - dtot);
+  const bedFactor = Math.pow(0.5,(tb-ti)/hSlow);
+  const bedRoom = Math.max(0, (P.bedLimit - resid(prev,tb,hSlow)) / bedFactor);
+  const cap = Math.min(S.single, dailyLeft, bedRoom);
+
+  let pick=null, reason='';
+  const opts = options(src);
+  const chosen = src==='custom' ? opts[0] : ($('drink').value==='any' ? null : opts.find(o=>o.key===$('drink').value));
+
+  if (tier===0) reason = 'none-low';
+  else if (need < 20) reason = 'none-enough';
+  else if (chosen){
+    if (chosen.mg < 20) reason = 'none-lowmg';
+    else {
+      const c = [0.5,1,1.5,2].filter(c=>chosen.mg*c<=cap+1e-9).map(c=>({o:chosen,cups:c,mg:chosen.mg*c}));
+      c.sort((x,y)=>Math.abs(x.mg-need)-Math.abs(y.mg-need) || x.cups-y.cups);
+      if (c.length) pick = c[0]; else reason = 'none-cap';
+    }
+  } else {
+    const cands=[];
+    opts.filter(o=>!o.decaf && o.mg>=20).forEach(o=>[0.5,1,2].forEach(c=>{
+      const mg=o.mg*c; if (mg<=cap+1e-9) cands.push({o,cups:c,mg,score:Math.abs(mg-need)+(c===0.5?15:0)+(c===2?10:0)});
+    }));
+    cands.sort((x,y)=>x.score-y.score || x.mg-y.mg);
+    if (cands.length) pick = cands[0]; else reason = 'none-cap';
+  }
+
+  const doses = pick ? [...prev, {t:ti, mg:pick.o.mg*pick.cups}] : prev;
+  const kBed = resid(doses,tb,h), kBedSlow = resid(doses,tb,hSlow), kNow = resid(prev,N,h);
+  const cupTxt = c => c===0.5?'반 잔':c+'잔';
+
+  if (pick){
+    const where = pick.o.shop ? `${pick.o.shop}에서 ` : '';
+    const base = pick.o.name.replace(/ \(.*\)$/,''), temp = (pick.o.name.match(/\((HOT|ICE)/)||[])[1];
+    const lc = base.charCodeAt(base.length-1), josa = (lc>=0xAC00&&lc<=0xD7A3) ? (((lc-0xAC00)%28)?'을':'를') : '을(를)';
+    $('verdict').innerHTML = `${fmt(ti)}에 ${esc(where)}<em>${esc(base)}${temp?' ('+temp+')':''}</em>${josa} ${cupTxt(pick.cups)} 마시는 것이 도움이 됩니다.`;
+    if (chosen && pick.cups<1) warns.push('고르신 음료는 한 잔을 다 마시면 섭취 한도나 취침 시 잔존량 기준을 넘거나 필요량보다 많아서 한 잔보다 적게 계산했습니다.');
+    if (chosen && pick.mg > need*1.5) warns.push(`고르신 음료는 필요량(약 ${r0(need)}mg)보다 카페인이 많습니다. 카페인이 더 적은 음료나 \'상관없음\'을 고르면 더 맞는 양을 추천받을 수 있습니다.`);
+  } else {
+    const msg = {
+      'none-low':'집중 시간대의 예상 졸음이 낮아서 추가 카페인은 권하지 않습니다.',
+      'none-enough':'이미 마신 카페인이 집중 시간까지 충분히 남아 있을 것으로 계산되어 추가 섭취는 권하지 않습니다.',
+      'none-lowmg':'고르신 음료는 카페인이 거의 없어 졸음을 줄이는 효과를 기대하기 어렵습니다. 졸음 대응이 목적이면 카페인이 있는 음료나 \'상관없음\'을 선택해 주세요.',
+      'none-cap':'하루 한도나 취침 시 잔존량 기준 안에서 마실 수 있는 양이 너무 적어 오늘은 추가 섭취를 권하지 않습니다. 짧은 휴식이나 가벼운 산책을 고려해 보세요.'
+    }[reason];
+    $('verdict').textContent = msg;
+  }
+  if (pick && tb - ti < 6) warns.push('잠들기 6시간 이내에 마시게 됩니다. 취침 6시간 전 섭취도 수면을 방해했다는 연구가 있으니 가능하면 더 일찍 마시거나 양을 줄여 주세요.');
+  if (S.slept < 5) warns.push('지난밤 수면이 5시간 미만입니다. 카페인은 잠을 대신하지 못하므로 가능하면 오늘 일찍 주무세요.');
+  const yUser = +$('y').value, mNow = M.idx(N);
+  if (Math.abs(yUser*10 - mNow) >= 40) warns.push(`지금 느끼시는 졸음(${yUser}점)과 모델의 현재 졸음 지수(${r0(mNow)}/100)가 많이 다릅니다. 모델이 개인 차이를 반영하지 못했을 수 있습니다.`);
+  $('warns').innerHTML = warns.map(w=>`<div class="note">${w}</div>`).join('');
+
+  $('figs4').innerHTML = `
+    <div class="fig"><b>${r0(focusIdx)}/100</b><span>집중 시간 평균 졸음 지수 (카페인 제외)</span></div>
+    <div class="fig"><b>${r0(kNow)}mg</b><span>지금 몸에 남은 카페인</span></div>
+    <div class="fig"><b>${r0(kBed)}mg</b><span>${fmt(tb)} 취침 시 예상 잔존량 (느린 대사라면 ${r0(kBedSlow)}mg)</span></div>
+    ${pick?`<div class="fig"><b>${r0(pick.o.mg*pick.cups)}mg</b><span>이번에 마실 카페인</span></div>`:''}`;
+
+  drawChart(M, doses, h, fsEff, fe, tb, pick?ti:null);
+
+  $('basis').innerHTML = `
+    <tr><th>항목</th><th>값</th><th>근거</th></tr>
+    <tr><td>수면 압력 시간상수</td><td>깨어 있을 때 ${P.chiW}h, 잘 때 ${P.chiS}h</td><td>Nature npj 논문(s44323-025-00039-z) 그림의 예시 매개변수. 개인 측정값 아님</td></tr>
+    <tr><td>수면 압력 상한·하한</td><td>1, 0 (상대값)</td><td>자체 가정. 논문의 실제 값은 확인 필요</td></tr>
+    <tr><td>취침 시 수면 압력 초기값</td><td>${M.Hon.toFixed(3)}</td><td>평소 취침·기상 패턴(수면 ${M.Sh.toFixed(1)}h)이 반복된다고 보고 Eq.(4)(5)로 계산</td></tr>
+    <tr><td>기상 시 수면 압력</td><td>${M.Hwake.toFixed(3)}</td><td>Eq.(5)에 지난밤 수면 ${S.slept}h 대입</td></tr>
+    <tr><td>하루 리듬 (Process C)</td><td>진폭 ${P.A}, 최대 시점 ${fmt(M.phi%24)}</td><td>Borbély(2022, PMC9540767)의 주기적 Process C를 코사인으로 구현. 진폭과 위상(평소 기상 + ${P.phiAfterWake}h, 아침형 −1.5h·저녁형 +1.5h)은 자체 가정</td></tr>
+    <tr><td>카페인 반감기</td><td>중심 ${h.toFixed(1)}h (범위 ${S.hl.lo.toFixed(1)}~${S.hl.hi.toFixed(1)}h)</td><td>설문 → 반감기 매핑은 자체 가정. 흡연 보정 비율은 PubMed 19125908 보고값(비흡연 약 4.3h, 흡연 약 3.0h). 범위(0.8~1.4배)도 자체 가정</td></tr>
+    <tr><td>잔존량 식</td><td>K(t) = D·(1/2)^(t/h)</td><td>흡수 과정을 생략한 단순화 식. 섭취 직후 값은 부정확할 수 있음</td></tr>
+    <tr><td>하루 최대</td><td>${P.daily}mg</td><td>건강한 성인 기준 (FDA, EFSA 2015, 식약처)</td></tr>
+    <tr><td>1회 상한</td><td>${r0(S.single)}mg</td><td>EFSA 2015: 1회 약 200mg(체중 1kg당 3mg)까지 안전 우려 없음</td></tr>
+    <tr><td>오늘 총 섭취량</td><td>${r0(dtot)}mg</td><td>가장 최근 한 잔 이전의 섭취분(${r0(earlier)}mg)은 기상~최근 섭취 중간 시각에 한 번 마신 것으로 근사. 하루 한도(${P.daily}mg)에서 이 총량을 뺀 만큼만 추천</td></tr>
+    <tr><td>음료 카페인 값 출처</td><td>메가커피·편의점 제품</td><td>${esc(SOURCES.mega||'메가커피 출처 미기입')} / ${esc(SOURCES.cvs||'편의점 출처 미기입')}</td></tr>
+    <tr><td>섭취 시각</td><td>집중 시작 ${P.onset*60}분 전</td><td>자체 가정. 흡수 시간은 개인차 큼</td></tr>
+    <tr><td>취침 시 잔존량 한도</td><td>${P.bedLimit}mg (느린 대사 ${S.hl.hi.toFixed(1)}h 기준으로 확인)</td><td>자체 가정. 이 값 이하면 수면에 영향이 없다는 검증된 기준은 없음</td></tr>
+    <tr><td>추천 양 규칙</td><td>졸음 지수 35·55·75 기준으로 1회 최대량의 0·50·75·100%</td><td>자체 규칙(임시). 실제 졸음 데이터로 검증 필요</td></tr>
+    <tr><td>계산에 쓰지 않은 입력</td><td>키, 성별, 수면 컨디션, 현재 졸음 점수</td><td>현재 졸음 점수는 모델 값과 비교만 함. 향후 AI 학습 입력으로 활용 예정</td></tr>`;
+  go(4);
+};
+
+/* ---------- 차트 (SVG) ---------- */
+function drawChart(M, doses, h, fs, fe, tb, ti){
+  const W=640,Hh=280,L=44,R=52,T=16,B=36, t0=M.N, t1=Math.max(tb,fe)+0.25;
+  const x = t => L + (t-t0)/(t1-t0)*(W-L-R);
+  const y01 = v => T + (1-clamp(v,0,1))*(Hh-T-B);
+  let kmax=0; for(let t=t0;t<=t1;t+=0.1) kmax=Math.max(kmax,resid(doses,t,h));
+  kmax = Math.max(100, Math.ceil(kmax/50)*50);
+  const yk = v => T + (1-v/kmax)*(Hh-T-B);
+  const path = (f,yf) => { let d=''; for(let t=t0;t<=t1+1e-9;t+=0.1) d += (d?'L':'M')+x(t).toFixed(1)+','+yf(f(t)).toFixed(1); return d; };
+  const cRel = t => 0.5 + M.C(t);                 // 실제 진폭 그대로 표시(0.5 기준)
+  let g = `<rect x="${x(fs)}" y="${T}" width="${x(fe)-x(fs)}" height="${Hh-T-B}" fill="var(--band)"/>`;
+  for(let k=Math.ceil(t0);k<=t1;k++){ if((k-Math.ceil(t0))%2) continue;
+    g += `<line x1="${x(k)}" x2="${x(k)}" y1="${Hh-B}" y2="${Hh-B+4}" stroke="var(--muted)"/><text x="${x(k)}" y="${Hh-B+18}" font-size="11" text-anchor="middle" fill="var(--muted)">${String(((k%24)+24)%24).padStart(2,'0')}시</text>`; }
+  g += `<line x1="${L}" x2="${W-R}" y1="${Hh-B}" y2="${Hh-B}" stroke="var(--line)"/>`;
+  [0,0.5,1].forEach(v=> g+=`<text x="${L-6}" y="${y01(v)+4}" font-size="11" text-anchor="end" fill="var(--muted)">${v}</text>`);
+  [0,kmax/2,kmax].forEach(v=> g+=`<text x="${W-R+6}" y="${yk(v)+4}" font-size="11" fill="var(--coffee)">${v}mg</text>`);
+  g += `<path d="${path(M.H,y01)}" fill="none" stroke="var(--sleep)" stroke-width="2.5"/>`;
+  g += `<path d="${path(cRel,y01)}" fill="none" stroke="var(--clock)" stroke-width="2" stroke-dasharray="6 4"/>`;
+  g += `<path d="${path(t=>resid(doses,t,h),yk)}" fill="none" stroke="var(--coffee)" stroke-width="2.5"/>`;
+  g += `<line x1="${x(tb)}" x2="${x(tb)}" y1="${T}" y2="${Hh-B}" stroke="var(--muted)" stroke-dasharray="2 3"/><text x="${x(tb)-4}" y="${T+10}" font-size="11" text-anchor="end" fill="var(--muted)">취침</text>`;
+  if (ti!=null) g += `<circle cx="${x(ti)}" cy="${yk(resid(doses,ti+0.01,h))}" r="5" fill="var(--coffee)"/><text x="${x(ti)+8}" y="${yk(resid(doses,ti+0.01,h))-6}" font-size="11" fill="var(--coffee)">섭취</text>`;
+  $('chart').innerHTML = g;
+}
+</script>
+<script>(function(){
+'use strict';
+var ROUTES=['home','calculator','method','about'];
+var $=function(s,r){return (r||document).querySelector(s)};
+var $$=function(s,r){return Array.prototype.slice.call((r||document).querySelectorAll(s))};
+/* ---- 라우팅 ---- */
+function route(){
+  var h=(location.hash||'').replace('#','');
+  if(ROUTES.indexOf(h)<0) h='home';
+  $$('.route').forEach(function(r){r.classList.toggle('on',r.id==='r-'+h)});
+  $$('nav.main-nav a').forEach(function(a){
+    if(a.getAttribute('href')==='#'+h) a.setAttribute('aria-current','page'); else a.removeAttribute('aria-current');
+  });
+  var t={home:'Focus:ON',calculator:'계산기 · Focus:ON',method:'계산 원리 · Focus:ON',about:'프로젝트 · Focus:ON'};
+  /* 제목은 고정 유지 */
+  window.scrollTo(0,0);
+}
+window.addEventListener('hashchange',route);route();
+document.addEventListener('click',function(e){
+  var a=e.target.closest&&e.target.closest('a');
+  if(!a) return;
+  if(document.body.classList.contains('editing')){
+    if(a.closest('#app .route')||a.closest('footer')) e.preventDefault();
+  }
+  var g=a.getAttribute('data-goto');
+  if(g){e.preventDefault();var el=document.getElementById(g);if(el) el.scrollIntoView({behavior:'smooth',block:'start'});}
+});
+/* ---- 편집 가능한 글 ---- */
+var BLOCK='h1,h2,h3,p,li,td,th,ul,ol,div,table,pre,section,figure,details,article';
+var SEL='.route:not(#r-calculator) :is(h1,h2,h3,p,li,td,th,figcaption,pre,summary), footer :is(p)';
+var ORIG={};
+var els=$$(SEL).filter(function(el){return !el.querySelector(BLOCK)});
+els.forEach(function(el,i){el.setAttribute('data-ek',String(i));ORIG[i]=el.innerHTML;});
+/* ---- 저장된 수정 적용 (허용된 태그만) ---- */
+var OK={A:1,B:1,STRONG:1,I:1,EM:1,BR:1,SMALL:1,SPAN:1,CODE:1,SUB:1,SUP:1};
+function clean(html){
+  var t=document.createElement('template');t.innerHTML=html;
+  (function walk(n){
+    Array.prototype.slice.call(n.childNodes).forEach(function(c){
+      if(c.nodeType===1){
+        if(!OK[c.tagName]){c.replaceWith(document.createTextNode(c.textContent));return;}
+        Array.prototype.slice.call(c.attributes).forEach(function(at){
+          var nm=at.name;
+          if(nm==='class') return;
+          if(nm==='href'&&c.tagName==='A'&&/^(https?:\/\/|#)/i.test(at.value)) return;
+          c.removeAttribute(nm);
+        });
+        if(c.tagName==='A') c.setAttribute('rel','noopener');
+        walk(c);
+      }
+    });
+  })(t.content);
+  return t.innerHTML;
+}
+var EDITS={};
+try{EDITS=JSON.parse($('#edits').textContent||'{}')||{};}catch(_){EDITS={};}
+Object.keys(EDITS).forEach(function(k){
+  var el=$('[data-ek="'+k+'"]'); if(el&&typeof EDITS[k]==='string') el.innerHTML=clean(EDITS[k]);
+});
+/* ---- 편집 모드 UI ---- */
+var bar=document.createElement('div');bar.className='edit-bar';bar.id='edit-bar';bar.hidden=true;
+bar.innerHTML='<span id="eb-msg"></span><button type="button" id="eb-edit">✎ 글 수정</button><button type="button" id="eb-reset" hidden>원래대로</button><button type="button" id="eb-cancel" hidden>취소</button><button type="button" class="primary" id="eb-save" hidden>저장</button>';
+document.body.appendChild(bar);
+var msg=$('#eb-msg'),bE=$('#eb-edit'),bR=$('#eb-reset'),bC=$('#eb-cancel'),bS=$('#eb-save');
+var editing=false,artifact=null,snapshot=null;
+function show(on){
+  editing=on;document.body.classList.toggle('editing',on);
+  els.forEach(function(el){ if(on) el.setAttribute('contenteditable','true'); else el.removeAttribute('contenteditable'); });
+  bE.hidden=on;bR.hidden=!on;bC.hidden=!on;bS.hidden=!on;
+  msg.textContent=on?'문장을 눌러 바로 고친 뒤 저장하세요':'';
+}
+els.forEach(function(el){
+  el.addEventListener('input',function(){el.classList.toggle('changed',clean(el.innerHTML)!==clean(ORIG[el.getAttribute('data-ek')]));});
+  el.addEventListener('paste',function(e){e.preventDefault();var t=(e.clipboardData||window.clipboardData).getData('text/plain');document.execCommand('insertText',false,t);});
+  el.addEventListener('keydown',function(e){ if(e.key==='Enter'&&el.tagName!=='PRE'){e.preventDefault();} });
+});
+bE.addEventListener('click',function(){snapshot={};els.forEach(function(el){snapshot[el.getAttribute('data-ek')]=el.innerHTML;});show(true);});
+bC.addEventListener('click',function(){els.forEach(function(el){var k=el.getAttribute('data-ek');el.innerHTML=snapshot[k];el.classList.remove('changed');});show(false);});
+bR.addEventListener('click',function(){
+  if(bR.getAttribute('data-arm')!=='1'){bR.setAttribute('data-arm','1');bR.textContent='정말 원래대로?';setTimeout(function(){bR.removeAttribute('data-arm');bR.textContent='원래대로';},4000);return;}
+  els.forEach(function(el){el.innerHTML=ORIG[el.getAttribute('data-ek')];el.classList.remove('changed');});
+  bR.removeAttribute('data-arm');bR.textContent='원래대로';msg.textContent='모든 글이 처음 상태입니다. 저장을 눌러 확정하세요';
+});
+/* ---- 저장: 전체 문서를 다시 만들어 게시 ---- */
+var SKEL='<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>';
+function buildDoc(){
+  var edits={};
+  els.forEach(function(el){var k=el.getAttribute('data-ek');var cur=clean(el.innerHTML);if(cur!==clean(ORIG[k])) edits[k]=cur;});
+  var body=document.body.cloneNode(true);
+  var eb=body.querySelector('#edit-bar'); if(eb) eb.remove();
+  body.classList.remove('editing'); if(!body.getAttribute('class')) body.removeAttribute('class');
+  $$('[data-ek]',body).forEach(function(el){var k=el.getAttribute('data-ek');el.innerHTML=ORIG[k];el.removeAttribute('data-ek');el.removeAttribute('contenteditable');el.classList.remove('changed');if(!el.getAttribute('class'))el.removeAttribute('class');});
+  var c=body.querySelector('#r-calculator'); if(c) c.innerHTML=window.__CALC_ORIG;
+  $$('.route',body).forEach(function(r){r.classList.remove('on');});
+  $$('nav.main-nav a',body).forEach(function(a){a.removeAttribute('aria-current');});
+  var ej=body.querySelector('#edits'); ej.textContent=JSON.stringify(edits).replace(/</g,'\\u003c');
+  /* 스크립트 태그 앞뒤 불필요한 속성 정리는 하지 않음 */
+  return {html:SKEL+body.innerHTML+'</body></html>',count:Object.keys(edits).length};
+}
+bS.addEventListener('click',function(){
+  if(!artifact){msg.textContent='이 화면에서는 저장할 수 없습니다 (편집 권한 필요)';return;}
+  var d=buildDoc();bS.disabled=true;msg.textContent='저장 중…';
+  Promise.resolve(artifact.publish(d.html)).then(function(){msg.textContent='저장했습니다. 새 버전으로 다시 불러옵니다…';})
+  .catch(function(err){
+    bS.disabled=false;
+    var code=err&&err.code;
+    msg.textContent=code==='conflict'?'다른 곳에서 먼저 저장되었습니다. 새로 불러옵니다':(code==='not_granted'||code==='not_writer')?'편집 권한이 없습니다':'저장에 실패했습니다. 잠시 후 다시 시도해 주세요';
+  });
+});
+/* ---- 권한 확인 후에만 편집 버튼 표시 ---- */
+Promise.all([window.claude&&window.claude.use?window.claude.use('artifact'):null,window.claude&&window.claude.use?window.claude.use('user'):null]).then(function(r){
+  artifact=r[0];var u=r[1];
+  var can=false; try{can=!!(u&&u.canEdit&&u.canEdit());}catch(_){}
+  if(artifact&&can) bar.hidden=false;
+}).catch(function(){});
+})();
+</script>
+
+</body></html>
